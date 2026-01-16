@@ -142,7 +142,7 @@ export default function LaptopScroll() {
 
                         {/* 25-50%: Left Aligned */}
                         <motion.div
-                            className="absolute inset-0 flex items-center justify-start pointer-events-none px-8 md:px-16"
+                            className="absolute inset-0 flex items-center justify-start pointer-events-none px-12 md:px-24 lg:px-32"
                             style={{ opacity: leftText1Opacity }}
                         >
                             <div className="max-w-md">
@@ -157,12 +157,12 @@ export default function LaptopScroll() {
                             </div>
                         </motion.div>
 
-                        {/* 50-75%: Right Aligned */}
+                        {/* 50-75%: Left Aligned */}
                         <motion.div
-                            className="absolute inset-0 flex items-center justify-end pointer-events-none px-8 md:px-16"
+                            className="absolute inset-0 flex items-center justify-start pointer-events-none px-12 md:px-24 lg:px-32"
                             style={{ opacity: leftText2Opacity }}
                         >
-                            <div className="max-w-md text-right">
+                            <div className="max-w-md">
                                 <h2 className="text-4xl md:text-6xl font-bold text-white/90 tracking-tight">
                                     RTX™ 3050.
                                     <br />
