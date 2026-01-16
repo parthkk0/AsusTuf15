@@ -58,6 +58,20 @@ export default function Footer() {
                             </span>
                             , exploring the intersection of AI tooling and immersive UI design.
                         </motion.p>
+
+                        <motion.a
+                            variants={fadeUp}
+                            href="https://in.store.asus.com/gaming-laptop-asus-tuf-gaming-a15-fa506ncr-hn075ws.html"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full text-white font-semibold text-lg shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105 transition-all duration-300"
+                        >
+                            <span>🛒</span>
+                            <span>Shop Now</span>
+                            <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                        </motion.a>
                     </div>
 
                     {/* Tools Grid */}
@@ -183,3 +197,4 @@ function MailIcon() {
         </svg>
     );
 }
+
