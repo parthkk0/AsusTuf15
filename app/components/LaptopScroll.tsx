@@ -1,229 +1,200 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useScroll, useTransform, motion, MotionValue } from "framer-motion";
-
-interface TextOverlay {
-    start: number;
-    end: number;
-    text: string;
-    align: "left" | "center" | "right";
-}
+import { useRef, useEffect, useState } from "react";
+import { useScroll, useTransform, motion } from "framer-motion";
 
 const TOTAL_FRAMES = 40;
-
-const textOverlays: TextOverlay[] = [
-    { start: 0, end: 0.25, text: "Asus TUF A15.", align: "center" },
-    { start: 0.25, end: 0.55, text: "Ryzen™ 7 7000 Series HS. Pure Performance.", align: "left" },
-    { start: 0.55, end: 0.85, text: "NVIDIA® RTX™ 3050. Graphic Dominance.", align: "left" },
-    { start: 0.85, end: 1, text: "16GB DDR5 RAM. Next-Gen Speed.", align: "left" },
-];
-
-function TextOverlayItem({
-    overlay,
-    scrollYProgress,
-}: {
-    overlay: TextOverlay;
-    scrollYProgress: MotionValue<number>;
-}) {
-    const getTextOpacity = (progress: number) => {
-        const fadeIn = 0.15;
-        const fadeOut = 0.15;
-
-        if (progress < overlay.start) return 0;
-        if (progress > overlay.end) return 0;
-
-        if (overlay.start === 0 && progress < 0.05) return 1;
-
-        const duration = overlay.end - overlay.start;
-        const relativeProgress = (progress - overlay.start) / duration;
-
-        if (relativeProgress < fadeIn) {
-            return relativeProgress / fadeIn;
-        }
-        if (relativeProgress > 1 - fadeOut) {
-            return (1 - relativeProgress) / fadeOut;
-        }
-        return 1;
-    };
-
-    const getYTransform = (progress: number) => {
-        const fadeIn = 0.15;
-        if (progress < overlay.start) return 50;
-        if (progress > overlay.end) return -50;
-
-        const duration = overlay.end - overlay.start;
-        const relativeProgress = (progress - overlay.start) / duration;
-
-        if (relativeProgress < fadeIn) {
-            return 50 * (1 - (relativeProgress / fadeIn));
-        }
-        if (relativeProgress > 1 - 0.15) {
-            return -50 * (1 - (1 - relativeProgress) / 0.15);
-        }
-        return 0;
-    };
-
-    const opacity = useTransform(scrollYProgress, getTextOpacity);
-    const y = useTransform(scrollYProgress, getYTransform);
-
-    const isCenter = overlay.align === 'center';
-    const isHero = overlay.start === 0;
-
-    return (
-        <motion.div
-            style={{
-                opacity,
-                y,
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: isHero ? 'center' : 'center',
-                justifyContent: isCenter ? 'center' : 'flex-start',
-                paddingLeft: !isCenter ? '5%' : '0',
-                paddingRight: '5%',
-                pointerEvents: 'none',
-            }}
-        >
-            <div
-                style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: isCenter ? 'center' : 'flex-start',
-                    gap: isHero ? '2rem' : '0',
-                    width: isCenter ? '100%' : 'auto',
-                    maxWidth: isCenter ? '90%' : '40%',
-                }}
-            >
-                <h2
-                    style={{
-                        fontSize: isHero ? 'clamp(3rem, 5vw, 5rem)' : 'clamp(1.5rem, 2.5vw, 2.5rem)',
-                        fontWeight: 700,
-                        lineHeight: 1.1,
-                        background: !isHero ? 'linear-gradient(to bottom, #ffffff, rgba(255,255,255,0.6))' : 'transparent',
-                        WebkitBackgroundClip: !isHero ? 'text' : 'unset',
-                        backgroundClip: !isHero ? 'text' : 'unset',
-                        WebkitTextFillColor: !isHero ? 'transparent' : 'unset',
-                        color: isHero ? 'white' : 'transparent',
-                        textAlign: isCenter ? 'center' : 'left',
-                        margin: 0,
-                    }}
-                >
-                    {overlay.text}
-                </h2>
-            </div>
-        </motion.div>
-    );
-}
 
 export default function LaptopScroll() {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [images, setImages] = useState<HTMLImageElement[]>([]);
     const [imagesLoaded, setImagesLoaded] = useState(false);
-    const [loadProgress, setLoadProgress] = useState(0);
+    const [currentFrame, setCurrentFrame] = useState(0);
 
     const { scrollYProgress } = useScroll({
         target: containerRef,
         offset: ["start start", "end end"],
     });
 
-    useEffect(() => {
-        let loadedCount = 0;
-        const imgArray: HTMLImageElement[] = [];
+    const frameIndex = useTransform(scrollYProgress, [0, 1], [0, TOTAL_FRAMES - 1]);
 
-        const loadImages = async () => {
-            const promises = [];
-            for (let i = 0; i < TOTAL_FRAMES; i++) {
-                const promise = new Promise<void>((resolve) => {
-                    const img = new Image();
-                    const paddedIndex = String(i + 1).padStart(3, '0');
-                    img.src = `/laptop-sequence/ezgif-frame-${paddedIndex}.jpg`;
-                    img.onload = () => {
-                        loadedCount++;
-                        setLoadProgress((loadedCount / TOTAL_FRAMES) * 100);
-                        imgArray[i] = img;
-                        resolve();
-                    };
-                    img.onerror = () => resolve();
-                });
-                promises.push(promise);
-            }
-            await Promise.all(promises);
-            setImages(imgArray);
-            setImagesLoaded(true);
-        };
-        loadImages();
+    // Text overlay opacities - all defined at top level
+    const heroOpacity = useTransform(scrollYProgress, [0, 0.15, 0.25], [1, 1, 0]);
+    const leftText1Opacity = useTransform(scrollYProgress, [0.25, 0.35, 0.45, 0.5], [0, 1, 1, 0]);
+    const leftText2Opacity = useTransform(scrollYProgress, [0.5, 0.6, 0.7, 0.75], [0, 1, 1, 0]);
+    const ctaOpacity = useTransform(scrollYProgress, [0.75, 0.85, 1], [0, 1, 1]);
+
+    // Preload all images
+    useEffect(() => {
+        const loadedImages: HTMLImageElement[] = [];
+        let loadedCount = 0;
+
+        for (let i = 1; i <= TOTAL_FRAMES; i++) {
+            const img = new Image();
+            const frameNum = i.toString().padStart(3, "0");
+            img.src = `/laptop-sequence/ezgif-frame-${frameNum}.jpg`;
+
+            img.onload = () => {
+                loadedCount++;
+                if (loadedCount === TOTAL_FRAMES) {
+                    setImages(loadedImages);
+                    setImagesLoaded(true);
+                }
+            };
+
+            img.onerror = () => {
+                console.error(`Failed to load frame: ${img.src}`);
+            };
+
+            loadedImages.push(img);
+        }
     }, []);
 
+    // Update canvas when frame changes
     useEffect(() => {
-        if (!imagesLoaded || !canvasRef.current || images.length === 0) return;
+        const unsubscribe = frameIndex.on("change", (latest) => {
+            setCurrentFrame(Math.round(latest));
+        });
+
+        return () => unsubscribe();
+    }, [frameIndex]);
+
+    // Render current frame to canvas
+    useEffect(() => {
+        if (!imagesLoaded || !canvasRef.current) return;
+
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        const renderFrame = () => {
-            const currentProgress = scrollYProgress.get();
-            const frameIndex = Math.min(Math.floor(currentProgress * TOTAL_FRAMES), TOTAL_FRAMES - 1);
-            const img = images[frameIndex];
-            if (!img) return;
+        const img = images[currentFrame];
+        if (!img) return;
 
-            const dpr = window.devicePixelRatio || 1;
-            canvas.width = window.innerWidth * dpr;
-            canvas.height = window.innerHeight * dpr;
-            canvas.style.width = `${window.innerWidth}px`;
-            canvas.style.height = `${window.innerHeight}px`;
+        // Set canvas size to match viewport
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
+        canvas.style.width = `${window.innerWidth}px`;
+        canvas.style.height = `${window.innerHeight}px`;
+        ctx.scale(dpr, dpr);
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.scale(dpr, dpr);
+        // Calculate scaling to fit image while maintaining aspect ratio (FULL COVERAGE)
+        const scale = Math.min(
+            window.innerWidth / img.width,
+            window.innerHeight / img.height
+        );
 
-            // Center the image with 80% scale
-            const scale = Math.min(window.innerWidth / img.width, window.innerHeight / img.height) * 0.8;
-            const x = (window.innerWidth - img.width * scale) / 2;
-            const y = (window.innerHeight - img.height * scale) / 2;
+        const x = (window.innerWidth - img.width * scale) / 2;
+        const y = (window.innerHeight - img.height * scale) / 2;
 
-            ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
+        // Clear canvas and draw image
+        ctx.fillStyle = "#050505";
+        ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+    }, [currentFrame, imagesLoaded, images]);
+
+    // Handle window resize
+    useEffect(() => {
+        if (!imagesLoaded) return;
+
+        const handleResize = () => {
+            setCurrentFrame((prev) => prev); // Trigger re-render
         };
 
-        const unsubscribe = scrollYProgress.on("change", renderFrame);
-
-        renderFrame();
-        window.addEventListener("resize", renderFrame);
-
-        return () => {
-            window.removeEventListener("resize", renderFrame);
-            unsubscribe();
-        };
-    }, [imagesLoaded, images, scrollYProgress]);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, [imagesLoaded]);
 
     return (
-        <div ref={containerRef} className="relative h-[400vh] bg-[#050505]">
-            {!imagesLoaded && (
-                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#050505]">
-                    <div className="mb-4 text-white/60 text-sm font-medium">Loading...</div>
-                    <div className="h-1 w-64 overflow-hidden rounded-full bg-white/10">
-                        <div
-                            className="h-full bg-white/60 transition-all duration-300"
-                            style={{ width: `${loadProgress}%` }}
-                        />
+        <div ref={containerRef} className="relative h-[400vh]">
+            {/* Sticky Canvas */}
+            <div className="sticky top-0 h-screen w-full flex items-center justify-center bg-[#050505]" style={{ top: 0 }}>
+                {!imagesLoaded ? (
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-16 h-16 border-4 border-white/20 border-t-white rounded-full animate-spin" />
+                        <p className="text-white/60 text-sm tracking-wider">Loading Experience...</p>
                     </div>
-                    <div className="mt-2 text-white/40 text-xs">{Math.round(loadProgress)}%</div>
-                </div>
-            )}
-
-            <div className="sticky top-0 h-screen w-full flex items-center justify-center">
-                <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+                ) : (
+                    <canvas
+                        ref={canvasRef}
+                        className="absolute inset-0 w-full h-full"
+                    />
+                )}
 
                 {/* Text Overlays */}
-                <div className="absolute inset-0 z-10 pointer-events-none">
-                    {imagesLoaded && textOverlays.map((overlay, index) => (
-                        <TextOverlayItem key={index} overlay={overlay} scrollYProgress={scrollYProgress} />
-                    ))}
-                </div>
+                {imagesLoaded && (
+                    <>
+                        {/* 0-25%: Hero Title */}
+                        <motion.div
+                            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                            style={{ opacity: heroOpacity }}
+                        >
+                            <div className="text-center px-4">
+                                <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white/90 tracking-tighter">
+                                    Asus TUF A15.
+                                </h1>
+                                <p className="text-lg md:text-xl text-white/60 mt-4 tracking-wide">
+                                    Power Meets Precision
+                                </p>
+                            </div>
+                        </motion.div>
+
+                        {/* 25-50%: Left Aligned */}
+                        <motion.div
+                            className="absolute inset-0 flex items-center justify-start pointer-events-none px-8 md:px-16"
+                            style={{ opacity: leftText1Opacity }}
+                        >
+                            <div className="max-w-md">
+                                <h2 className="text-4xl md:text-6xl font-bold text-white/90 tracking-tight">
+                                    Ryzen™ 7 7000.
+                                    <br />
+                                    Pure Performance.
+                                </h2>
+                                <p className="text-base md:text-lg text-white/60 mt-4 tracking-wide">
+                                    Next-gen AMD architecture for unmatched speed
+                                </p>
+                            </div>
+                        </motion.div>
+
+                        {/* 50-75%: Right Aligned */}
+                        <motion.div
+                            className="absolute inset-0 flex items-center justify-end pointer-events-none px-8 md:px-16"
+                            style={{ opacity: leftText2Opacity }}
+                        >
+                            <div className="max-w-md text-right">
+                                <h2 className="text-4xl md:text-6xl font-bold text-white/90 tracking-tight">
+                                    RTX™ 3050.
+                                    <br />
+                                    Graphic Power.
+                                </h2>
+                                <p className="text-base md:text-lg text-white/60 mt-4 tracking-wide">
+                                    NVIDIA graphics for immersive gaming
+                                </p>
+                            </div>
+                        </motion.div>
+
+                        {/* 75-100%: Center CTA */}
+                        <motion.div
+                            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                            style={{ opacity: ctaOpacity }}
+                        >
+                            <div className="text-center px-4">
+                                <h2 className="text-5xl md:text-7xl font-bold text-white/90 tracking-tighter">
+                                    Ready to dominate.
+                                </h2>
+                                <a
+                                    href="https://in.store.asus.com/gaming-laptop-asus-tuf-gaming-a15-fa506ncr-hn075ws.html"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-8 inline-block px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-semibold rounded-full hover:scale-105 transition-transform pointer-events-auto shadow-lg"
+                                >
+                                    🛒 Shop Now →
+                                </a>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
             </div>
         </div>
     );
