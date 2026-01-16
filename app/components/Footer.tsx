@@ -1,9 +1,9 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import React from "react";
 
-const stagger = {
+const stagger: Variants = {
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
@@ -11,12 +11,12 @@ const stagger = {
     }
 };
 
-const fadeUp = {
+const fadeUp: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
         opacity: 1,
         y: 0,
-        transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }
+        transition: { duration: 0.6, ease: "easeOut" }
     }
 };
 
@@ -26,7 +26,7 @@ export default function Footer() {
             {/* Ambient glow effect */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent pointer-events-none" />
 
-            <div className="relative max-w-6xl mx-auto px-6 lg:px-8 py-24 lg:pr-16">
+            <div className="relative max-w-7xl mx-auto px-8 lg:px-12 py-24">
                 <motion.div
                     initial="hidden"
                     whileInView="visible"
@@ -62,8 +62,8 @@ export default function Footer() {
 
                     {/* Tools Grid */}
                     <motion.div variants={fadeUp} className="flex flex-col items-center">
-                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Powered By</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 w-full max-w-4xl">
+                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 text-center">Powered By</h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 w-full max-w-5xl justify-items-center">
                             <ToolCard emoji="🤖" label="Antigravity AI" href="https://antigravity.google" />
                             <ToolCard emoji="🧪" label="Google Labs" href="https://labs.google" />
                             <ToolCard emoji="🎨" label="Whisk" href="https://labs.google" />
@@ -123,13 +123,13 @@ function ToolCard({ emoji, label, href }: { emoji: string; label: string; href: 
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative flex flex-col items-center justify-center gap-2 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105"
+            className="group relative flex flex-col items-center justify-center gap-2 p-5 w-full bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105"
             aria-label={`Visit ${label}`}
         >
-            <span className="text-2xl group-hover:scale-110 transition-transform duration-300" aria-hidden>
+            <span className="text-3xl group-hover:scale-110 transition-transform duration-300" aria-hidden>
                 {emoji}
             </span>
-            <span className="text-xs font-medium text-gray-300 group-hover:text-white transition-colors">
+            <span className="text-xs font-medium text-gray-300 group-hover:text-white transition-colors text-center">
                 {label}
             </span>
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/0 to-purple-500/0 group-hover:from-blue-500/10 group-hover:to-purple-500/10 transition-all duration-300" />
